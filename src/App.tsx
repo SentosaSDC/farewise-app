@@ -77,6 +77,45 @@ export default function App() {
     }
   }, [history]);
 
+  // Live LTA DataMall Taxi Availability State
+  const [ltaTaxiData, setLtaTaxiData] = useState<{
+    count: number;
+    isLive: boolean;
+    islandwideTotal: number;
+  }>({
+    count: 14,
+    isLive: false,
+    islandwideTotal: 85,
+  });
+
+  useEffect(() => {
+    let isCancelled = false;
+    const fetchTaxiAvailability = async () => {
+      try {
+        const res = await fetch(`/api/taxiaavailability?lat=${origin.lat}&lng=${origin.lng}&radius=4`);
+        if (res.ok) {
+          const data = await res.json();
+          if (!isCancelled) {
+            setLtaTaxiData({
+              count: data.nearbyTaxiCount ?? 14,
+              isLive: Boolean(data.isLiveFromDatamall),
+              islandwideTotal: data.totalTaxisIslandwide ?? 85,
+            });
+          }
+        }
+      } catch {
+        // graceful fallback to simulated count
+      }
+    };
+
+    fetchTaxiAvailability();
+    const interval = setInterval(fetchTaxiAvailability, 30000);
+    return () => {
+      isCancelled = true;
+      clearInterval(interval);
+    };
+  }, [origin.lat, origin.lng]);
+
   // Compute Hour Value
   const simulatedHourDecimal = useMemo(() => {
     switch (timeMode) {
@@ -324,18 +363,45 @@ export default function App() {
                 distanceKm={distanceKm}
                 durationMins={durationMins}
                 erpFee={erpFee}
-                driverCount={rideOptions[0]?.driverCountNearby || 12}
+                driverCount={ltaTaxiData.count}
               />
             </div>
 
             {/* Singapore Corridor Insights Card */}
             <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                Singapore Regulatory &amp; Route Telemetry
-              </h4>
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  Singapore Regulatory &amp; Route Telemetry
+                </h4>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  ltaTaxiData.isLive 
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
+                    : 'bg-slate-100 text-slate-600 border border-slate-200'
+                }`}>
+                  {ltaTaxiData.isLive ? '● Live LTA DataMall' : '○ LTA DataMall Ready'}
+                </span>
+              </div>
 
               <div className="space-y-3 text-xs">
+                {/* LTA Taxi Availability Live Feed */}
+                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-blue-50/80 border border-blue-200">
+                  <div className="p-1 rounded bg-white shrink-0 mt-0.5">🚖</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-900">LTA Taxi-Availability</span>
+                      <span className="font-extrabold text-blue-700 bg-white px-2 py-0.5 rounded shadow-2xs">
+                        {ltaTaxiData.count} taxis nearby
+                      </span>
+                    </div>
+                    <p className="text-slate-600 text-[11px] mt-0.5">
+                      {ltaTaxiData.isLive
+                        ? `Streamed live from LTA DataMall endpoint (/api/taxiaavailability). ${ltaTaxiData.islandwideTotal} taxis islandwide.`
+                        : `Live serverless endpoint ready at /api/taxiaavailability. Set LTA_DATAMALL_API_KEY to activate live API stream.`}
+                    </p>
+                  </div>
+                </div>
+
                 {/* Weather Surge Notice */}
                 <div className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200">
                   <div className="p-1 rounded bg-white shrink-0 mt-0.5">

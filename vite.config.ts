@@ -5,6 +5,7 @@ import {defineConfig} from 'vite';
 
 import healthHandler from './api/health';
 import taxiAvailabilityHandler from './api/taxiaavailability';
+import onemapHandler from './api/onemap';
 
 export default defineConfig(() => {
   return {
@@ -21,6 +22,9 @@ export default defineConfig(() => {
             }
             if (url === '/api/taxiaavailability' || url === '/api/taxi-availability') {
               return taxiAvailabilityHandler(req, res);
+            }
+            if (url === '/api/onemap' || url === '/api/onemap-search' || url === '/api/onemap-route') {
+              return onemapHandler(req, res);
             }
             next();
           });

@@ -1,0 +1,6 @@
+{
+  "name": "Fare Wise - Singapore Ride-Hailing Comparison & Fare Predictor",
+  "description": "Compare real-time fare prices, surge pricing, and pickup ETAs across Grab, Gojek, TADA, and ComfortDelGro Taxis in Singapore with smart predictive booking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
